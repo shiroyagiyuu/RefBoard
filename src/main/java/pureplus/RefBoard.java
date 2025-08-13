@@ -58,7 +58,13 @@ class BoardView extends JComponent
 				int   draw_x = (int)((selbounds.x - position.x) * scale);
 				int   draw_y = (int)((selbounds.y - position.y) * scale);
 
-				g.setColor(select_color);
+				g2d.setColor(select_color);
+
+				Stroke  bk_stroke = g2d.getStroke();
+				g2d.setStroke(new BasicStroke(2));
+				g2d.drawRect(draw_x, draw_y, draw_w, draw_h);
+				g2d.setStroke(bk_stroke);
+
 				g2d.fill( getHandleBounds(draw_x,          draw_y         ) );
 				g2d.fill( getHandleBounds(draw_x+draw_w/2, draw_y         ) );
 				g2d.fill( getHandleBounds(draw_x+draw_w  , draw_y         ) );
@@ -199,20 +205,31 @@ public class RefBoard
 		view.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent ev) {
-				if (ev.isPopupTrigger()) {
+				if (ev.getButton()==MouseEvent.BUTTON3) {
 					// TODO Popupmenu
+					drag_start = null;
+					drag_pane = null;
 				} else if (ev.getButton()==MouseEvent.BUTTON2) {
 					drag_start = ev.getPoint();
 					drag_pane = null;
-				} else if (model.isSelected()) {
-					drag_start = view.getWorldPosition(ev.getPoint());
-					drag_pane = model.getTopPanel();
+				} else {
+					Point  		wpt = view.getWorldPosition(ev.getPoint());
+					ImagePanel 	tgt = model.getPanel(wpt);
+					ImagePanel  bkimgp = model.getSelectedPanel();
+					model.setSelectedPanel(tgt);
+					if (tgt != bkimgp) view.repaint();
+
+					if (tgt!=null) {
+						drag_start = wpt;
+						drag_pane = tgt;
+					}
 				}
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				drag_start = null;		
+				drag_start = null;
+				drag_pane = null;	
 			}
 
 			@Override
@@ -223,11 +240,11 @@ public class RefBoard
 					if (!model.isTopPanel(imgp)) {
 						model.pullupPanel(imgp);
 					}
-					model.setSelected(true);
+					model.setSelectedPanel(imgp);
 					view.repaint();
 				} else {
-					if (model.isSelected()) {
-						model.setSelected(false);
+					if (model.getSelectedPanel()!=null) {
+						model.setSelectedPanel(null);
 						view.repaint();
 					}
 				}

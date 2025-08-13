@@ -8,15 +8,15 @@ import java.util.Iterator;
 public class RefBoardModel {
     LinkedList<ImagePanel>  img_panels;
 
-    boolean  selected;
+    ImagePanel  selected_panel;
 
     public Iterator<ImagePanel> getDrawIterator() {
         return img_panels.descendingIterator();
     }
 
     public Rectangle getSelectionBounds() {
-        if (selected) {
-            return img_panels.getFirst().getBounds();
+        if (selected_panel != null) {
+            return selected_panel.getBounds();
         }
         return null;
     }
@@ -60,16 +60,16 @@ public class RefBoardModel {
         img_panels = list;
     }
 
-    public void setSelected(boolean sel) {
-        this.selected = sel;
+    public void setSelectedPanel(ImagePanel panel) {
+        this.selected_panel = panel;
     }
 
-    public boolean isSelected() {
-        return selected;
+    public ImagePanel getSelectedPanel() {
+        return this.selected_panel;
     }
 
     public RefBoardModel() {
-        selected = false;
+        selected_panel = null;
         img_panels = new LinkedList<>();
     }
 }
