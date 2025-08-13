@@ -7,7 +7,6 @@ public class ImagePanel
 {
 	Rectangle		bounds;
 	BufferedImage	image;
-	boolean			select;
 
     public Rectangle getBounds() {
 		return this.bounds;
@@ -23,14 +22,6 @@ public class ImagePanel
 
 	public void setImage(BufferedImage img) {
 		this.image = img;
-	}
-
-	public boolean isSelected() {
-		return this.select;
-	}
-
-	public void setSelected(boolean s) {
-		this.select = s;
 	}
 
 	int  id;
@@ -51,6 +42,5 @@ public class ImagePanel
 		this.id = id;
 		this.bounds = new Rectangle(x,y,width,height);
         this.image = img;
-        this.select = false;
     }
 }
