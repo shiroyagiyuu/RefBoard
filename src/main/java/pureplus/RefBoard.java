@@ -138,8 +138,7 @@ public class RefBoard
 	JFileChooser   fChooser;
 
 	/* control */
-    Point  		drag_start;
-	ImagePanel  drag_pane;
+    Point  		        drag_start;
 	
 	void addImage(File f, int x, int y) {
 		BufferedImage  img;
@@ -209,20 +208,23 @@ public class RefBoard
 				if (ev.getButton()==MouseEvent.BUTTON3) {
 					// TODO Popupmenu
 					drag_start = null;
-					drag_pane = null;
 				} else if (ev.getButton()==MouseEvent.BUTTON2) {
 					drag_start = ev.getPoint();
-					drag_pane = null;
 				} else {
 					Point  		wpt = view.getWorldPosition(ev.getPoint());
-					ImagePanel 	tgt = model.getPanel(wpt);
-					ImagePanel  bkimgp = model.getSelectedPanel();
-					model.setSelectedPanel(tgt);
-					if (tgt != bkimgp) view.repaint();
+					ImagePanelControl  ctrl = model.getSelectedControl();
+					if (ctrl != null && ctrl.checkHandleHit(wpt)>=0) {
+						ctrl.startDrag(wpt);
+					} else {
+						ImagePanel  bkimgp = model.getSelectedPanel();
+						ImagePanel 	tgt = model.getPanel(wpt);
+						model.setSelectedPanel(tgt);
+						if (tgt != bkimgp) view.repaint();
 
-					if (tgt!=null) {
-						drag_start = wpt;
-						drag_pane = tgt;
+						if (tgt!=null) {
+							ctrl = model.getSelectedControl();
+							ctrl.startDrag(wpt);
+						}
 					}
 				}
 			}
@@ -230,7 +232,10 @@ public class RefBoard
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				drag_start = null;
-				drag_pane = null;	
+				ImagePanelControl  ctrl = model.getSelectedControl();
+				if (ctrl != null && ctrl.isDragging()) {
+					ctrl.endDrag();
+				}
 			}
 
 			@Override
@@ -255,19 +260,24 @@ public class RefBoard
 		view.addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
 			public void mouseDragged(MouseEvent ev) {
-				if (drag_start != null) {
-					
-					if (drag_pane != null) {
-						Point  pt = view.getWorldPosition(ev.getPoint());
-						drag_pane.translate(pt.x - drag_start.x, pt.y - drag_start.y);
-						drag_start = pt;
-						view.repaint();
-					} else {
-						Point  pt = ev.getPoint();
-						view.moveLocationAsDisp(drag_start.x - pt.x, drag_start.y - pt.y);
-						drag_start = pt;
-						view.repaint();
-					}
+				ImagePanelControl  ctrl = model.getSelectedControl();
+				if (ctrl != null && ctrl.isDragging()) {
+					Point  pt = view.getWorldPosition(ev.getPoint());
+					ctrl.drag(pt);
+					view.repaint();
+				} else if (drag_start != null) {
+					Point  pt = ev.getPoint();
+					view.moveLocationAsDisp(drag_start.x - pt.x, drag_start.y - pt.y);
+					drag_start = pt;
+					view.repaint();
+				}
+			}
+
+			@Override
+			public void mouseMoved(MouseEvent ev) {
+				ImagePanelControl  ctrl = model.getSelectedControl();
+				if (ctrl != null) {
+					ctrl.setCursor(view, view.getWorldPosition(ev.getPoint()));
 				}
 			}
 		});

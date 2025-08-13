@@ -9,6 +9,7 @@ public class RefBoardModel {
     LinkedList<ImagePanel>  img_panels;
 
     ImagePanel  selected_panel;
+    ImagePanelControl   ctrl;
 
     public Iterator<ImagePanel> getDrawIterator() {
         return img_panels.descendingIterator();
@@ -62,14 +63,24 @@ public class RefBoardModel {
 
     public void setSelectedPanel(ImagePanel panel) {
         this.selected_panel = panel;
+        ctrl.setImagePanel(panel);
     }
 
     public ImagePanel getSelectedPanel() {
         return this.selected_panel;
     }
 
+    public ImagePanelControl getSelectedControl() {
+        if (this.selected_panel != null) {
+            return this.ctrl;
+        } else {
+            return null;
+        }
+    }
+
     public RefBoardModel() {
         selected_panel = null;
         img_panels = new LinkedList<>();
+        ctrl = new ImagePanelControl();
     }
 }

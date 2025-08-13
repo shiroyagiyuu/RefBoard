@@ -9,11 +9,11 @@ public class ImagePanel
 	BufferedImage	image;
 
     public Rectangle getBounds() {
-		return this.bounds;
+		return new Rectangle(this.bounds);
 	}
 
 	public void setBounds(Rectangle rect) {
-		this.bounds = rect;
+		this.bounds = new Rectangle(rect);
 	}
 
 	public BufferedImage getImage() {
