@@ -13,7 +13,7 @@ import java.util.Iterator;
 class BoardView extends JComponent
 {
 	RefBoardModel	model;
-	Point			position;
+	Point			viewLocation; /* View Location unit is board */
 	double			scale;
 
 	Color			select_color = new Color(128,128,255);
@@ -43,8 +43,8 @@ class BoardView extends JComponent
 
 					int   draw_w = (int)(imgbounds.width * scale);
 					int   draw_h = (int)(imgbounds.height * scale);
-					int   draw_x = (int)((imgbounds.x - position.x) * scale);
-					int   draw_y = (int)((imgbounds.y - position.y) * scale);
+					int   draw_x = (int)((imgbounds.x - viewLocation.x) * scale);
+					int   draw_y = (int)((imgbounds.y - viewLocation.y) * scale);
 		
 					g2d.drawImage(imgp.getImage(), draw_x, draw_y, draw_w, draw_h, this);
 				}
@@ -55,8 +55,8 @@ class BoardView extends JComponent
 				/* Draw Handle */
 				int   draw_w = (int)(selbounds.width * scale);
 				int   draw_h = (int)(selbounds.height * scale);
-				int   draw_x = (int)((selbounds.x - position.x) * scale);
-				int   draw_y = (int)((selbounds.y - position.y) * scale);
+				int   draw_x = (int)((selbounds.x - viewLocation.x) * scale);
+				int   draw_y = (int)((selbounds.y - viewLocation.y) * scale);
 
 				g2d.setColor(select_color);
 
@@ -86,19 +86,20 @@ class BoardView extends JComponent
 		repaint();
 	}
 
-	public Point getPosition() {
-		return this.position;
+	public Point getViewLocation() {
+		return this.viewLocation;
 	}
 
-	public void setPosition(Point pt) {
-		this.position = pt;
+	public void setViewLocation(Point pt) {
+		this.viewLocation = pt;
 	}
 
-	public void movePositionScaled(int x, int y) {
-		this.position.translate((int)(x / scale), (int)(y / scale));
+	public void moveLocationAsDisp(int x, int y) {
+		this.viewLocation.translate((int)(x / scale), (int)(y / scale));
 	}
 
-	public Dimension getPrefferedSize() {
+	@Override
+	public Dimension getPreferredSize() {
 		return new Dimension(1200,768);
 	}
 
@@ -115,12 +116,12 @@ class BoardView extends JComponent
 	}
 
 	public Point getWorldPosition(Point pt) {
-		return new Point((int)(pt.x / this.scale) + position.x,
-						 (int)(pt.y / this.scale) + position.y);
+		return new Point((int)(pt.x / this.scale) + viewLocation.x,
+						 (int)(pt.y / this.scale) + viewLocation.y);
 	}
 
 	public BoardView() {
-		this.position = new Point();
+		this.viewLocation = new Point();
 		this.scale = 1.0;
 	}
 }
@@ -263,7 +264,7 @@ public class RefBoard
 						view.repaint();
 					} else {
 						Point  pt = ev.getPoint();
-						view.movePositionScaled(drag_start.x - pt.x, drag_start.y - pt.y);
+						view.moveLocationAsDisp(drag_start.x - pt.x, drag_start.y - pt.y);
 						drag_start = pt;
 						view.repaint();
 					}
