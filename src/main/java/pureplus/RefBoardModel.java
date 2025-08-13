@@ -8,16 +8,14 @@ import java.util.Iterator;
 public class RefBoardModel {
     LinkedList<ImagePanel>  img_panels;
 
-    int    mode = 0;
-    final static int MODE_VIEW=0;
-    final static int MODE_EDIT=1;
+    boolean  selected;
 
     public Iterator<ImagePanel> getDrawIterator() {
         return img_panels.descendingIterator();
     }
 
     public Rectangle getSelectionBounds() {
-        if (mode==MODE_EDIT) {
+        if (selected) {
             return img_panels.getFirst().getBounds();
         }
         return null;
@@ -62,22 +60,16 @@ public class RefBoardModel {
         img_panels = list;
     }
 
-    public void setEditMode(boolean b) {
-        if (b) {
-            if (mode!=MODE_EDIT) System.out.println("mode to edit");
-            mode = MODE_EDIT; }
-        else {
-            if (mode!=MODE_VIEW) System.out.println("mode to view");
-            mode = MODE_VIEW;
-        }
+    public void setSelected(boolean sel) {
+        this.selected = sel;
     }
 
-    public boolean isEditMode() {
-        return (mode==MODE_EDIT);
+    public boolean isSelected() {
+        return selected;
     }
 
     public RefBoardModel() {
-        mode = MODE_VIEW;
+        selected = false;
         img_panels = new LinkedList<>();
     }
 }

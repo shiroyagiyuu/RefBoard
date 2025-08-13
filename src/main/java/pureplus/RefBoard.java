@@ -88,8 +88,8 @@ class BoardView extends JComponent
 		this.position = pt;
 	}
 
-	public void movePosition(int x, int y) {
-		this.position.translate(x, y);
+	public void movePositionScaled(int x, int y) {
+		this.position.translate((int)(x / scale), (int)(y / scale));
 	}
 
 	public Dimension getPrefferedSize() {
@@ -105,7 +105,12 @@ class BoardView extends JComponent
 	}
 
 	public void scaleUp(int num) {
-		this.scale = this.scale - (num/100.0);
+		this.scale = this.scale - (num/50.0);
+	}
+
+	public Point getWorldPosition(Point pt) {
+		return new Point((int)(pt.x / this.scale) + position.x,
+						 (int)(pt.y / this.scale) + position.y);
 	}
 
 	public BoardView() {
@@ -194,14 +199,13 @@ public class RefBoard
 		view.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent ev) {
-				System.out.println("MouseBtn:" + ev.getButton());
 				if (ev.isPopupTrigger()) {
 					// TODO Popupmenu
 				} else if (ev.getButton()==MouseEvent.BUTTON2) {
 					drag_start = ev.getPoint();
 					drag_pane = null;
-				} else if (model.isEditMode()) {
-					drag_start = ev.getPoint();
+				} else if (model.isSelected()) {
+					drag_start = view.getWorldPosition(ev.getPoint());
 					drag_pane = model.getTopPanel();
 				}
 			}
@@ -213,22 +217,17 @@ public class RefBoard
 
 			@Override
 			public void mouseClicked(MouseEvent ev) {
-				Point  pt = ev.getPoint();
+				Point  pt = view.getWorldPosition(ev.getPoint());
 				ImagePanel  imgp = model.getPanel(pt);
 				if (imgp != null) {
-					if (model.isTopPanel(imgp)) {
-						if (!model.isEditMode()) {
-							model.setEditMode(true);
-							view.repaint();
-						}
-					} else {
-						model.setEditMode(false);
+					if (!model.isTopPanel(imgp)) {
 						model.pullupPanel(imgp);
-						view.repaint();
 					}
+					model.setSelected(true);
+					view.repaint();
 				} else {
-					if (model.isEditMode()) {
-						model.setEditMode(false);
+					if (model.isSelected()) {
+						model.setSelected(false);
 						view.repaint();
 					}
 				}
@@ -239,14 +238,15 @@ public class RefBoard
 			@Override
 			public void mouseDragged(MouseEvent ev) {
 				if (drag_start != null) {
-					Point  pt = ev.getPoint();
+					
 					if (drag_pane != null) {
-						// fix me
-						drag_pane.getBounds().translate(pt.x - drag_start.x, pt.y - drag_start.y);
+						Point  pt = view.getWorldPosition(ev.getPoint());
+						drag_pane.translate(pt.x - drag_start.x, pt.y - drag_start.y);
 						drag_start = pt;
 						view.repaint();
 					} else {
-						view.movePosition(drag_start.x - pt.x, drag_start.y - pt.y);
+						Point  pt = ev.getPoint();
+						view.movePositionScaled(drag_start.x - pt.x, drag_start.y - pt.y);
 						drag_start = pt;
 						view.repaint();
 					}

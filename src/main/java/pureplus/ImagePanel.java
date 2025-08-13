@@ -43,6 +43,10 @@ public class ImagePanel
 		this.id = id;
 	}
 
+	public void translate(int x, int y) {
+		this.bounds.translate(x, y);
+	}
+
     public ImagePanel(BufferedImage img, int id, int x, int y, int width, int height) {
 		this.id = id;
 		this.bounds = new Rectangle(x,y,width,height);
