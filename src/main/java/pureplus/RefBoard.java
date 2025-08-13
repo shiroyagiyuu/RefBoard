@@ -15,7 +15,7 @@ class BoardView extends JComponent
 	RefBoardModel	model;
 	Point			position;
 	double			scale;
-	
+
 	Color			select_color = new Color(128,128,255);
 
 	public Rectangle getHandleBounds(int x, int y) {
@@ -94,6 +94,18 @@ class BoardView extends JComponent
 
 	public Dimension getPrefferedSize() {
 		return new Dimension(1200,768);
+	}
+
+	public double getScale() {
+		return scale;
+	}
+
+	public void setScale(double scale) {
+		this.scale = scale;
+	}
+
+	public void scaleUp(int num) {
+		this.scale = this.scale - (num/100.0);
 	}
 
 	public BoardView() {
@@ -238,6 +250,16 @@ public class RefBoard
 						drag_start = pt;
 						view.repaint();
 					}
+				}
+			}
+		});
+
+		view.addMouseWheelListener(new MouseWheelListener() {
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent ev) {
+				if (drag_start == null) {
+					view.scaleUp(ev.getWheelRotation());
+					view.repaint();
 				}
 			}
 		});
