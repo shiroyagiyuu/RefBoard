@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import javax.imageio.ImageIO;
 
 public class RefBoardDB {
@@ -145,7 +145,7 @@ public class RefBoardDB {
         }
     }
 
-    public ImagePanel[] loadDB() {
+    public LinkedList<ImagePanel> loadDB() {
         String selectQuery = "SELECT position.id, x, y, width, height, content FROM position "+
                              "INNER JOIN imagecont ON position.id = imagecont.id;";
 
@@ -157,7 +157,7 @@ public class RefBoardDB {
         )
         {
             ResultSet  rs = stmt.executeQuery(selectQuery);
-            ArrayList<ImagePanel>      list = new ArrayList<>();
+            LinkedList<ImagePanel>      list = new LinkedList<>();
 
             while(rs.next())
             {
@@ -177,7 +177,7 @@ public class RefBoardDB {
                 }
             }
 
-            return list.toArray(new ImagePanel[list.size()]);
+            return list;
         } catch(SQLException ex) {
             ex.printStackTrace(System.err);
         }

@@ -8,10 +8,11 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import java.util.Iterator;
 
 class BoardView extends JComponent
 {
-	ImagePanel[]	img_pane;
+	RefBoardModel	model;
 	Point			position;
 	double			scale;
 	
@@ -33,9 +34,10 @@ class BoardView extends JComponent
 		g2d.setColor(Color.lightGray);
 		g2d.fillRect(0, 0, bounds.width, bounds.height);
 
-		if (img_pane!=null) {
-			for (int i=0; i<img_pane.length; i++) {
-				ImagePanel  imgp = img_pane[i];
+		if (model!=null) {
+			Iterator<ImagePanel>	imgp_itr = model.getDrawIterator();
+			while (imgp_itr.hasNext()) {
+				ImagePanel imgp = imgp_itr.next();
 				if (imgp != null) {
 					Rectangle imgbounds = imgp.getBounds();
 
@@ -45,20 +47,26 @@ class BoardView extends JComponent
 					int   draw_y = (int)((imgbounds.y - position.y) * scale);
 		
 					g2d.drawImage(imgp.getImage(), draw_x, draw_y, draw_w, draw_h, this);
-
-					if (imgp.isSelected()) {
-						/* Draw Handle */
-						g.setColor(select_color);
-						g2d.fill( getHandleBounds(draw_x,          draw_y         ) );
-						g2d.fill( getHandleBounds(draw_x+draw_w/2, draw_y         ) );
-						g2d.fill( getHandleBounds(draw_x+draw_w  , draw_y         ) );
-						g2d.fill( getHandleBounds(draw_x,          draw_y+draw_h/2) );
-						g2d.fill( getHandleBounds(draw_x+draw_w  , draw_y+draw_h/2) );
-						g2d.fill( getHandleBounds(draw_x         , draw_y+draw_h  ) );
-						g2d.fill( getHandleBounds(draw_x+draw_w/2, draw_y+draw_h  ) );
-						g2d.fill( getHandleBounds(draw_x+draw_w  , draw_y+draw_h  ) );
-					}
 				}
+			}
+
+			Rectangle selbounds = model.getSelectionBounds();
+			if (selbounds != null) {
+				/* Draw Handle */
+				int   draw_w = (int)(selbounds.width * scale);
+				int   draw_h = (int)(selbounds.height * scale);
+				int   draw_x = (int)((selbounds.x - position.x) * scale);
+				int   draw_y = (int)((selbounds.y - position.y) * scale);
+
+				g.setColor(select_color);
+				g2d.fill( getHandleBounds(draw_x,          draw_y         ) );
+				g2d.fill( getHandleBounds(draw_x+draw_w/2, draw_y         ) );
+				g2d.fill( getHandleBounds(draw_x+draw_w  , draw_y         ) );
+				g2d.fill( getHandleBounds(draw_x,          draw_y+draw_h/2) );
+				g2d.fill( getHandleBounds(draw_x+draw_w  , draw_y+draw_h/2) );
+				g2d.fill( getHandleBounds(draw_x         , draw_y+draw_h  ) );
+				g2d.fill( getHandleBounds(draw_x+draw_w/2, draw_y+draw_h  ) );
+				g2d.fill( getHandleBounds(draw_x+draw_w  , draw_y+draw_h  ) );
 			}
 		}
 	}
@@ -67,8 +75,8 @@ class BoardView extends JComponent
 		paint(g);
 	}
 
-	public void setImages(ImagePanel[] pane) {
-		this.img_pane = pane;
+	public void setModel(RefBoardModel refmodel) {
+		this.model = refmodel;
 		repaint();
 	}
 
@@ -78,6 +86,10 @@ class BoardView extends JComponent
 
 	public void setPosition(Point pt) {
 		this.position = pt;
+	}
+
+	public void movePosition(int x, int y) {
+		this.position.translate(x, y);
 	}
 
 	public Dimension getPrefferedSize() {
@@ -90,14 +102,21 @@ class BoardView extends JComponent
 	}
 }
 
+
+
 public class RefBoard
 {
-	JFrame       frame;
-	BoardView    view;
-	RefBoardDB	 db;
+	JFrame       	frame;
+	BoardView    	view;
+	RefBoardModel	model;
+	RefBoardDB	 	db;
 
 	JFileChooser   fChooser;
 
+	/* control */
+    Point  		drag_start;
+	ImagePanel  drag_pane;
+	
 	void addImage(File f, int x, int y) {
 		BufferedImage  img;
 		ImagePanel     imgp;
@@ -111,7 +130,8 @@ public class RefBoard
 			imgp = new ImagePanel(img, -1, x, y, width, height);
 
 			db.insertFile(f, imgp);
-			view.setImages(db.loadDB());
+			model.setImagePanelList(db.loadDB());
+			view.repaint();
 		} catch (IOException ex) {
 			ex.printStackTrace(System.err);
 		}
@@ -130,6 +150,8 @@ public class RefBoard
 	public RefBoard() {
 		frame = new JFrame("RefBoard");
 		view = new BoardView();
+		model = new RefBoardModel();
+		view.setModel(model);
 		fChooser = new JFileChooser();
 		
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -157,41 +179,68 @@ public class RefBoard
 
 		frame.setJMenuBar(mbar);
 
-		/*
 		view.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent ev) {
-				if (ldr!=null) { 
-					if (ev.isPopupTrigger()) {
-						ldr.previous();
-						//System.out.println("previous");
+				System.out.println("MouseBtn:" + ev.getButton());
+				if (ev.isPopupTrigger()) {
+					// TODO Popupmenu
+				} else if (ev.getButton()==MouseEvent.BUTTON2) {
+					drag_start = ev.getPoint();
+					drag_pane = null;
+				} else if (model.isEditMode()) {
+					drag_start = ev.getPoint();
+					drag_pane = model.getTopPanel();
+				}
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				drag_start = null;		
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent ev) {
+				Point  pt = ev.getPoint();
+				ImagePanel  imgp = model.getPanel(pt);
+				if (imgp != null) {
+					if (model.isTopPanel(imgp)) {
+						if (!model.isEditMode()) {
+							model.setEditMode(true);
+							view.repaint();
+						}
 					} else {
-						ldr.next();
+						model.setEditMode(false);
+						model.pullupPanel(imgp);
+						view.repaint();
+					}
+				} else {
+					if (model.isEditMode()) {
+						model.setEditMode(false);
+						view.repaint();
 					}
 				}
 			}
 		});
 
-		view.setFocusable(true);
-		view.addKeyListener(new KeyAdapter() {
+		view.addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
-			public void keyReleased(KeyEvent ev) {
-				//System.out.println("KeyEvent code="+ev.getKeyCode());
-				if (ldr!=null) {
-					switch(ev.getKeyCode()) {
-					case KeyEvent.VK_DOWN:
-					case KeyEvent.VK_RIGHT:
-					case KeyEvent.VK_SPACE:
-						ldr.next();
-						break;
-					case KeyEvent.VK_UP:
-					case KeyEvent.VK_LEFT:
-						ldr.previous();
+			public void mouseDragged(MouseEvent ev) {
+				if (drag_start != null) {
+					Point  pt = ev.getPoint();
+					if (drag_pane != null) {
+						// fix me
+						drag_pane.getBounds().translate(pt.x - drag_start.x, pt.y - drag_start.y);
+						drag_start = pt;
+						view.repaint();
+					} else {
+						view.movePosition(drag_start.x - pt.x, drag_start.y - pt.y);
+						drag_start = pt;
+						view.repaint();
 					}
 				}
 			}
 		});
-		*/
 
 		fChooser.setFileFilter(new ImageFileFilter());
 
@@ -201,8 +250,7 @@ public class RefBoard
 	public void openDB(String path) {
 		db = new RefBoardDB(path);
 		db.init();
-		ImagePanel[]  pane = db.loadDB();
-		view.setImages(pane);
+		model.setImagePanelList(db.loadDB());
 	}
 
 	public void setVisible(boolean v) {
