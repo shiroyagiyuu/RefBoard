@@ -17,13 +17,25 @@ import java.util.LinkedList;
 import javax.imageio.ImageIO;
 
 public class RefBoardDB {
-    String  dbname;
+    String  dbFilename;
+
+    public String getDbFilename() {
+        return dbFilename;
+    }
+
+    public void setDbFilename(String dbFilename) {
+        this.dbFilename = dbFilename;
+    }
+
+    public String getDBName() {
+        return "jdbc:sqlite:" + dbFilename;
+    }
 
     public void init() {
         try
         (
           // create a database connection
-          Connection connection = DriverManager.getConnection(dbname);
+          Connection connection = DriverManager.getConnection(getDBName());
           Statement statement = connection.createStatement();
         )
         {
@@ -43,7 +55,7 @@ public class RefBoardDB {
         try
         (
             // create a database connection
-            Connection connection = DriverManager.getConnection(dbname);
+            Connection connection = DriverManager.getConnection(getDBName());
             PreparedStatement pstmt = connection.prepareStatement(SQL_INS);
         )
         {
@@ -100,7 +112,7 @@ public class RefBoardDB {
         try
         (
             // create a database connection
-            Connection connection = DriverManager.getConnection(dbname);
+            Connection connection = DriverManager.getConnection(getDBName());
             PreparedStatement pstmt = connection.prepareStatement(insertQuery);
         )
         {
@@ -117,18 +129,18 @@ public class RefBoardDB {
         }
     }
 
-    public void updateSetting(ImagePanel imgpane) {
+    public void updatePosition(ImagePanel imgpane) {
         String updateQuery = "UPDATE position SET x = ?, y = ?, width = ?, height = ? WHERE id = ?";
 
         if (imgpane.getId()<0 ) {
-            System.err.println("Unknown ID?!");
+            System.err.println("Unknown ID?["+imgpane.getId()+"]");
             return;
         }
 
         try
         (
             // create a database connection
-            Connection connection = DriverManager.getConnection(dbname);
+            Connection connection = DriverManager.getConnection(getDBName());
             PreparedStatement pstmt = connection.prepareStatement(updateQuery);
         )
         {
@@ -152,7 +164,7 @@ public class RefBoardDB {
         try
         (
             // create a database connection
-            Connection connection = DriverManager.getConnection(dbname);
+            Connection connection = DriverManager.getConnection(getDBName());
             Statement stmt = connection.createStatement();
         )
         {
@@ -186,6 +198,6 @@ public class RefBoardDB {
     }
 
     public RefBoardDB(String path) {
-        dbname = "jdbc:sqlite:" + path;
+        setDbFilename(path);
     }
 }

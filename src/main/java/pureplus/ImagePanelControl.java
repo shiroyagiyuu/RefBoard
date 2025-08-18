@@ -4,7 +4,6 @@ import java.awt.Rectangle;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Point;
-import java.awt.Dimension;
 
 public class ImagePanelControl {
     ImagePanel  imagePanel;
@@ -175,7 +174,10 @@ public class ImagePanelControl {
                 bounds.height = fixBounds.height;
                 break;
         }
-        imagePanel.setBounds(bounds);
+
+        if (bounds.width > 0 && bounds.height > 0) {
+            imagePanel.setBounds(bounds);
+        }
     }
 
     public void endDrag() {
