@@ -134,6 +134,7 @@ public class RefBoard
 	BoardView    	view;
 	RefBoardModel	model;
 	RefBoardDB	 	db;
+	SystemConfig	sysConfig;
 
 	JFileChooser   fChooser;
 
@@ -181,6 +182,8 @@ public class RefBoard
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent ev) {
+				//TODO: UpdateLeyer
+				//UpdatePosition
 				System.exit(0);
 			}
 		});
@@ -295,12 +298,22 @@ public class RefBoard
 		fChooser.setFileFilter(new ImageFileFilter());
 
 		frame.setSize(1200,1024);
+
+		/* LoadConfig */
+		sysConfig = new SystemConfig();
 	}
 
 	public void openDB(String path) {
 		db = new RefBoardDB(path);
+		sysConfig.addRecent(path);
 		db.init();
 		model.setImagePanelList(db.loadDB());
+	}
+
+	public void openLastDB() {
+		sysConfig.loadRecent();
+		String  path = sysConfig.getLastDB();
+		openDB(path);
 	}
 
 	public void setVisible(boolean v) {
@@ -313,13 +326,14 @@ public class RefBoard
 
 	public static void main(String[] args) {
 		RefBoard refboard = new RefBoard();
-		String   dbname = "refboarddata.db";
 
 		if (args.length>0) {
-			dbname = args[0];
+			String dbname = args[0];
+			refboard.openDB(dbname);
+		} else {
+			refboard.openLastDB();
 		}
 
-		refboard.openDB(dbname);
 		refboard.setVisible(true);
 	}
 }
