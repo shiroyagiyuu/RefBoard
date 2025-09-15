@@ -78,6 +78,13 @@ public class RefBoardModel {
         }
     }
 
+    public ImagePanel[] getAllPanel() {
+        ImagePanel[]  ary;
+        
+        ary = img_panels.toArray(new ImagePanel[0]);
+        return ary;
+    }
+
     public RefBoardModel() {
         selected_panel = null;
         img_panels = new LinkedList<>();

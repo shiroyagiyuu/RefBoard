@@ -141,6 +141,15 @@ public class RefBoard
 	/* control */
     Point  		        drag_start;
 	
+	public void saveDB() {
+		//TODO: UpdateLayer
+		ImagePanel[]   panels = model.getAllPanel();
+
+		for (int i=0; i<panels.length; i++) {
+			db.updatePosition(panels[i]);
+		}
+	}
+
 	void addImage(File f, int x, int y) {
 		BufferedImage  img;
 		ImagePanel     imgp;
@@ -162,7 +171,7 @@ public class RefBoard
 
 	}
 
-	public void openImage() {
+	public void importImage() {
 		int  ret = fChooser.showOpenDialog(frame);
 		
 		if (ret == JFileChooser.APPROVE_OPTION) {
@@ -182,24 +191,35 @@ public class RefBoard
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent ev) {
-				//TODO: UpdateLeyer
-				//UpdatePosition
+				//TODO: check save
 				System.exit(0);
 			}
 		});
 		frame.setContentPane(view);
 
+		/* Create Menubar */
 		JMenuBar  mbar = new JMenuBar();
 		JMenu     filemenu = new JMenu("File");
 
-		AbstractAction  openact = new AbstractAction("Open") {
+		AbstractAction  importact = new AbstractAction("Import Image") {
 			public void actionPerformed(ActionEvent e) {
-				openImage();
+				importImage();
 			}
 		};
 
-		JMenuItem  openitem = new JMenuItem(openact);
-		filemenu.add(openitem);
+		AbstractAction saveact = new AbstractAction("Save") {
+			public void actionPerformed(ActionEvent e) {
+				saveDB();
+			}
+		};
+
+		JMenuItem  saveitem = new JMenuItem(saveact);
+		filemenu.add(saveitem);
+
+		filemenu.addSeparator();
+
+		JMenuItem  importitem = new JMenuItem(importact);
+		filemenu.add(importitem);
 	
 		mbar.add(filemenu);
 
